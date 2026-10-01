@@ -110,3 +110,7 @@ export async function POST(req: NextRequest) {
     const message =
       error?.status === 401
         ? "Invalid API key. Please check your key and provider."
+        : error?.message || "Failed to generate the app. Check your API key, model, and network.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
