@@ -11,14 +11,6 @@ interface Message {
   generatedFiles?: Record<string, string>;
 }
 
-const PROVIDERS = [
-  { id: "openai", name: "OpenAI", defaultModel: "gpt-4o" },
-  { id: "xai", name: "xAI (Grok)", defaultModel: "grok-2" },
-  { id: "groq", name: "Groq", defaultModel: "llama-3.3-70b-versatile" },
-  { id: "together", name: "Together AI", defaultModel: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo" },
-  { id: "openrouter", name: "OpenRouter", defaultModel: "openai/gpt-4o" },
-];
-
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -34,16 +26,11 @@ Describe the app you want to build and I'll generate a complete, ready-to-deploy
 - "Make a weather dashboard that uses a free API"
 - "Build a full-stack notes app with Next.js"
 
-Just type what you want below. After generation you'll get a ZIP you can download and deploy.
-
-**First step:** Click "Set API Key" and choose your provider.`,
+Just type what you want below. After generation you'll get a ZIP you can download and deploy.`,
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [provider, setProvider] = useState("openai");
-  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,12 +40,6 @@ Just type what you want below. After generation you'll get a ZIP you can downloa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-
-    if (!apiKey.trim()) {
-      setShowSettings(true);
-      alert("Please set an API key first.");
-      return;
-    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -76,8 +57,6 @@ Just type what you want below. After generation you'll get a ZIP you can downloa
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: userMessage.content,
-          apiKey: apiKey.trim(),
-          provider,
           history: messages
             .filter((m) => m.id !== "welcome")
             .map((m) => ({ role: m.role, content: m.content })),
@@ -105,7 +84,7 @@ Just type what you want below. After generation you'll get a ZIP you can downloa
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: `❌ **Error:** ${error.message || "Something went wrong. Check your API key and try again."}`,
+          content: `❌ **Error:** ${error.message || "Something went wrong. Please try again later."}`,
         },
       ]);
     } finally {
@@ -121,54 +100,7 @@ Just type what you want below. After generation you'll get a ZIP you can downloa
           <h1 className="text-xl font-bold tracking-tight">App Builder</h1>
           <p className="text-xs text-zinc-400">Describe → Generate → Download ZIP → Deploy</p>
         </div>
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="text-sm px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
-        >
-          {apiKey ? "⚙️ Settings" : "🔑 Set API Key"}
-        </button>
       </header>
-
-      {/* Settings Panel */}
-      {showSettings && (
-        <div className="border-b border-zinc-800 bg-zinc-900 px-4 py-4 space-y-3">
-          <div>
-            <label className="block text-sm text-zinc-300 mb-1">Provider</label>
-            <select
-              value={provider}
-              onChange={(e) => setProvider(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {PROVIDERS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm text-zinc-300 mb-1">API Key</label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-... or xai-... or gsk_..."
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex justify-end">
-            <button
-              onClick={() => setShowSettings(false)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium"
-            >
-              Save
-            </button>
-          </div>
-          <p className="text-xs text-zinc-500">
-            Your key is only sent to this app’s backend and is never stored. Works with any OpenAI-compatible API.
-          </p>
-        </div>
-      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
